@@ -18,10 +18,9 @@ const redisClient = () => {
         console.log('Redis is connected');
         return new ioredis_1.Redis(process.env.REDIS_URL, {
             retryStrategy(times) {
-                // reconnect after
                 return Math.min(times * 50, 2000);
             },
-            maxRetriesPerRequest: 50, // Increase max retries per request
+            maxRetriesPerRequest: 50,
         });
     }
     throw new Error("Redis connection failed");

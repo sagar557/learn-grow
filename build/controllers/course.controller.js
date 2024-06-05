@@ -59,7 +59,6 @@ exports.editCourse = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, nex
                 url: courseData?.thumbnail.url,
             };
         }
-        // const courseId = req.params.id;
         const course = await course_model_1.default.findByIdAndUpdate(courseId, {
             $set: data
         }, {
@@ -88,7 +87,7 @@ exports.getSingleCourse = (0, catchAsyncError_1.CatchAsyncError)(async (req, res
         }
         else {
             const course = await course_model_1.default.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
-            await redis_1.redis.set(courseId, JSON.stringify(course), 'EX', 604800); //7 days;
+            await redis_1.redis.set(courseId, JSON.stringify(course), 'EX', 604800); //7 days
             res.status(200).json({
                 success: true,
                 course,
@@ -102,21 +101,11 @@ exports.getSingleCourse = (0, catchAsyncError_1.CatchAsyncError)(async (req, res
 //get all courses -- without purchasing
 exports.getAllCourses = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
-        // const isCacheExist = await redis.get("allCourses");
-        // if (isCacheExist) {
-        //     const course = JSON.parse(isCacheExist);
-        //     res.status(200).json({
-        //         success: true,
-        //         course,
-        //     });
-        // } else {
         const courses = await course_model_1.default.find().select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
-        // await redis.set("allCourses", JSON.stringify(course));
         res.status(200).json({
             success: true,
             courses,
         });
-        // }
     }
     catch (error) {
         return next(new ErrorHandler_1.default(error.message, 500));
@@ -153,20 +142,17 @@ exports.addQuestion = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, ne
         if (!courseContent) {
             return next(new ErrorHandler_1.default("Invalid content id", 400));
         }
-        //create a new question object
         const newQuestion = {
             user: req.user,
             question,
             questionReplies: [],
         };
-        //add the question to the content
         courseContent.questions.push(newQuestion);
         await notificationModel_1.default.create({
             user: req.user?._id,
             title: "New Question Received",
-            message: `You havea new question from ${courseContent.title}`,
+            message: `You have a new question from ${courseContent.title}`,
         });
-        //save the updatedcourse
         await course?.save();
         res.status(200).json({
             success: true,
@@ -192,20 +178,16 @@ exports.addAnswer = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next
         if (!question) {
             return next(new ErrorHandler_1.default("Invalid question id", 400));
         }
-        // create a new answer
         const newAnswer = {
             user: req.user,
             answer,
         };
-        // Check if question.questionReplies exists before pushing the new answer
         if (!question.questionReplies) {
             question.questionReplies = [];
         }
-        // add this answer to our course content
         question.questionReplies.push(newAnswer);
         await course?.save();
         if (req.user?._id === question.user._id) {
-            // create a notification 
             await notificationModel_1.default.create({
                 user: req.user?._id,
                 title: "New Question Reply Received",
@@ -243,7 +225,6 @@ exports.addReview = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next
     try {
         const userCourseList = req.user?.courses;
         const courseId = req.params.id;
-        // check if courseId already exists in userCourseList based on _id
         const courseExists = userCourseList?.some((course) => course._id.toString() === courseId.toString());
         if (!courseExists) {
             return next(new ErrorHandler_1.default("You are not eligible to access this course", 404));
@@ -264,11 +245,6 @@ exports.addReview = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next
             course.ratings = avg / course.reviews.length;
         }
         await course?.save();
-        // const notification = {
-        //     title: "New Review Received",
-        //     message: `${req.user?.name} has given a review in ${course?.name}`,
-        // }
-        // create notification 
         await notificationModel_1.default.create({
             user: req.user?._id,
             title: "New Review Received",

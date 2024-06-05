@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUserRole = exports.getAllUsers = exports.updateProfilePicture = exports.updatePassword = exports.updateUserInfo = exports.socialAuth = exports.getUserInfo = exports.updateAccessToken = exports.logoutUser = exports.loginUser = exports.activateUser = exports.createActivationToken = exports.registrationUser = void 0;
+exports.deleteUser = exports.updateUserRole = exports.getAllUsers = exports.updateProfilePicture = exports.updatePassword = exports.updateUserInfo = exports.socialAuth = exports.getUserInfo = exports.logoutUser = exports.loginUser = exports.activateUser = exports.createActivationToken = exports.registrationUser = void 0;
 require('dotenv').config();
 const user_model_1 = __importDefault(require("../models/user.model"));
 const ErrorHandler_1 = __importDefault(require("../utils/ErrorHandler"));
@@ -16,8 +16,8 @@ const jwt_1 = require("../utils/jwt");
 const redis_1 = require("../utils/redis");
 const user_service_1 = require("../services/user.service");
 const cloudinary_1 = __importDefault(require("cloudinary"));
+// User registration
 exports.registrationUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
-    // const {name,email,password,avatar}= req.body as IRegistrationBody;
     try {
         const { name, email, password } = req.body;
         const isEmailExist = await user_model_1.default.findOne({ email });
@@ -37,7 +37,7 @@ exports.registrationUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, re
         try {
             await (0, sendMail_1.default)({
                 email: user.email,
-                subject: "Account your account ",
+                subject: "Activate your account",
                 template: "activation-mail.ejs",
                 data,
             });
@@ -55,6 +55,7 @@ exports.registrationUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, re
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 });
+// Create activation token
 const createActivationToken = (user) => {
     const activationCode = Math.floor(1000 + Math.random() * 9000).toString();
     const token = jsonwebtoken_1.default.sign({
@@ -75,7 +76,7 @@ exports.activateUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, n
         const { name, email, password } = newUser.user;
         const existUser = await user_model_1.default.findOne({ email });
         if (existUser) {
-            return next(new ErrorHandler_1.default("Email already exist ", 400));
+            return next(new ErrorHandler_1.default("Email already exist", 400));
         }
         const user = await user_model_1.default.create({
             name,
@@ -94,30 +95,26 @@ exports.loginUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next
     try {
         const { email, password } = req.body;
         if (!email || !password) {
-            return next(new ErrorHandler_1.default("Please enter email and Password ", 400));
+            return next(new ErrorHandler_1.default("Please enter email and password", 400));
         }
-        ;
         const user = await user_model_1.default.findOne({ email }).select("+password");
         if (!user) {
-            return next(new ErrorHandler_1.default("Invalid email or password ", 400));
+            return next(new ErrorHandler_1.default("Invalid email or password", 400));
         }
-        ;
         const isPasswordMatch = await user.comparePassword(password);
         if (!isPasswordMatch) {
-            return next(new ErrorHandler_1.default("Invalid email or password ", 400));
+            return next(new ErrorHandler_1.default("Invalid email or password", 400));
         }
-        ;
         (0, jwt_1.sendToken)(user, 200, res);
     }
     catch (error) {
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 });
-// logout user 
+// Logout user
 exports.logoutUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
         res.cookie("access_token", "", { maxAge: 1 });
-        res.cookie("refresh_token", "", { maxAge: 1 });
         const userId = req.user?._id || '';
         redis_1.redis.del(userId);
         res.status(200).json({
@@ -129,41 +126,7 @@ exports.logoutUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, nex
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 });
-// update access token
-exports.updateAccessToken = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
-    try {
-        const refresh_token = req.cookies.refresh_token;
-        const decoded = jsonwebtoken_1.default.verify(refresh_token, process.env.REFRESH_TOKEN);
-        const message = "Could not refresh token";
-        if (!decoded) {
-            return next(new ErrorHandler_1.default(message, 400));
-        }
-        const session = await redis_1.redis.get(decoded.id);
-        if (!session) {
-            return next(new ErrorHandler_1.default('Please login for access this resources', 400));
-        }
-        const user = JSON.parse(session);
-        const accessToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.ACCESS_TOKEN, {
-            expiresIn: '30m',
-        });
-        const refreshToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.REFRESH_TOKEN, {
-            expiresIn: "3d",
-        });
-        req.user = user;
-        res.cookie("access_token", accessToken, jwt_1.accessTokenOptions);
-        res.cookie("refresh_token", refreshToken, jwt_1.refreshTokenOptions);
-        await redis_1.redis.set(user._id, JSON.stringify(user), "EX", 604800); // 7days
-        // res.status(200).json({
-        //     status: "success",
-        //     accessToken,
-        // });
-        next();
-    }
-    catch (error) {
-        return next(new ErrorHandler_1.default(error.message, 400));
-    }
-});
-// get user info 
+// Get user info
 exports.getUserInfo = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
         const userId = req.user?._id;
@@ -173,7 +136,7 @@ exports.getUserInfo = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, ne
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 });
-//social auth 
+// Social auth
 exports.socialAuth = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
         const { email, name, avatar } = req.body;
@@ -195,13 +158,6 @@ exports.updateUserInfo = (0, catchAsyncError_1.CatchAsyncError)(async (req, res,
         const { name } = req.body;
         const userId = req.user?._id;
         const user = await user_model_1.default.findById(userId);
-        // if (email && user) {
-        //     const isEmailExist = await userModel.findOne({ email });
-        //     if (isEmailExist) {
-        //         return next(new ErrorHandler("Email already exist", 400));
-        //     }
-        //     user.email = email;
-        // }
         if (name && user) {
             user.name = name;
         }
@@ -219,7 +175,7 @@ exports.updatePassword = (0, catchAsyncError_1.CatchAsyncError)(async (req, res,
     try {
         const { oldPassword, newPassword } = req.body;
         if (!oldPassword || !newPassword) {
-            return next(new ErrorHandler_1.default("please enter old and new password", 400));
+            return next(new ErrorHandler_1.default("Please enter old and new password", 400));
         }
         const user = await user_model_1.default.findById(req.user?._id).select("+password");
         if (user?.password === undefined) {
@@ -241,16 +197,13 @@ exports.updatePassword = (0, catchAsyncError_1.CatchAsyncError)(async (req, res,
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 });
-// update profile picture
 exports.updateProfilePicture = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
         const { avatar } = req.body;
         const userId = req.user?._id;
         const user = await user_model_1.default.findById(userId);
         if (avatar && user) {
-            //if we have one avatar then call this if
             if (user?.avatar?.public_id) {
-                //first delete old img
                 await cloudinary_1.default.v2.uploader.destroy(user?.avatar?.public_id);
                 const myCloud = await cloudinary_1.default.v2.uploader.upload(avatar, {
                     folder: "avatars",
@@ -283,7 +236,7 @@ exports.updateProfilePicture = (0, catchAsyncError_1.CatchAsyncError)(async (req
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 });
-//get all users -- only for admin
+// Get all users (admin)
 exports.getAllUsers = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
         (0, user_service_1.getAllUsersService)(res);
@@ -292,7 +245,7 @@ exports.getAllUsers = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, ne
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 });
-//update user role -- only for admin
+// Update user role (admin)
 exports.updateUserRole = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
         const { id, role } = req.body;
@@ -302,7 +255,7 @@ exports.updateUserRole = (0, catchAsyncError_1.CatchAsyncError)(async (req, res,
         return next(new ErrorHandler_1.default(error.message, 400));
     }
 });
-// delete user -- only for admin
+// Delete user (admin)
 exports.deleteUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -313,7 +266,7 @@ exports.deleteUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, nex
         await user.deleteOne({ id });
         await redis_1.redis.del(id);
         res.status(200).json({
-            success: "true",
+            success: true,
             message: "User deleted successfully",
         });
     }
