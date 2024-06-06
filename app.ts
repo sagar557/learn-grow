@@ -21,7 +21,9 @@ app.use(cookieParser());
 //cors 
 app.use(cors({
     // origin: ["https://learn-grow.onrender.com"],
-    origin: ["http://localhost:4200"],
+    // origin: ["http://localhost:4200"],
+    origin: ["http://localhost:3000"],
+
     credentials:true,
 }));
 

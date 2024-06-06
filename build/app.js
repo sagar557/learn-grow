@@ -24,7 +24,8 @@ exports.app.use((0, cookie_parser_1.default)());
 //cors 
 exports.app.use((0, cors_1.default)({
     // origin: ["https://learn-grow.onrender.com"],
-    origin: ["http://localhost:4200"],
+    // origin: ["http://localhost:4200"],
+    origin: ["http://localhost:3000"],
     credentials: true,
 }));
 // api rate limit
