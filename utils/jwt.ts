@@ -24,9 +24,10 @@ export const accessTokenOptions: ITokenOptions = {
 
 export const sendToken = (user: IUser, statusCode: number, res: Response) => {
     const accessToken = user.SignAccessToken();
-
+    const id:any = user._id
     // Upload session to redis
-    redis.set(user._id, JSON.stringify(user));
+    redis.set(id, JSON.stringify(user));
+    
 
     res.cookie("access_token", accessToken, accessTokenOptions);
 

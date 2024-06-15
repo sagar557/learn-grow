@@ -32,6 +32,7 @@ interface ICourseData extends Document{
 }
 
 export interface ICourse extends Document{
+    _id: string;
     name:string;
     description?: string;
     categories:string;

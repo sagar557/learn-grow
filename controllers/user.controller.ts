@@ -11,6 +11,7 @@ import { accessTokenOptions, sendToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
 import { getAllUsersService, getUserById, updateUserRoleService } from "../services/user.service";
 import cloudinary from "cloudinary";
+import { RedisKey } from "ioredis";
 
 // Registration interface
 interface IRegistrationBody {
@@ -143,7 +144,8 @@ export const logoutUser = CatchAsyncError(async (req: Request, res: Response, ne
     try {
         res.cookie("access_token", "", { maxAge: 1 });
         const userId = req.user?._id || '';
-        redis.del(userId);
+        // redis.del(userId);
+        redis.del(userId as RedisKey);
         res.status(200).json({
             success: true,
             message: "Logged out successfully",
@@ -157,7 +159,9 @@ export const logoutUser = CatchAsyncError(async (req: Request, res: Response, ne
 export const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user?._id;
-        getUserById(userId, res);
+        // getUserById(userId, res);
+        getUserById(userId as string, res);
+
     } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
     }
@@ -235,7 +239,9 @@ export const updatePassword = CatchAsyncError(async (req: Request, res: Response
         }
         user.password = newPassword;
         await user?.save();
-        await redis.set(req.user?._id, JSON.stringify(user));
+        // await redis.set(req.user?._id, JSON.stringify(user));
+        await redis.set(req.user?._id as RedisKey, JSON.stringify(user));
+
 
         res.status(201).json({
             success: true,
@@ -253,7 +259,7 @@ interface IUpdateProfilePicture {
 export const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { avatar } = req.body;
-        const userId = req.user?._id;
+        const userId:any = req.user?._id;
         const user = await userModel.findById(userId);
 
         if (avatar && user) {
@@ -280,6 +286,7 @@ export const updateProfilePicture = CatchAsyncError(async (req: Request, res: Re
         }
         await user?.save();
         await redis.set(userId, JSON.stringify(user));
+        
         res.status(200).json({
             success: true,
             user,

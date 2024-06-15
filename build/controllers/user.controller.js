@@ -116,6 +116,7 @@ exports.logoutUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, nex
     try {
         res.cookie("access_token", "", { maxAge: 1 });
         const userId = req.user?._id || '';
+        // redis.del(userId);
         redis_1.redis.del(userId);
         res.status(200).json({
             success: true,
@@ -130,6 +131,7 @@ exports.logoutUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, nex
 exports.getUserInfo = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
         const userId = req.user?._id;
+        // getUserById(userId, res);
         (0, user_service_1.getUserById)(userId, res);
     }
     catch (error) {
@@ -187,6 +189,7 @@ exports.updatePassword = (0, catchAsyncError_1.CatchAsyncError)(async (req, res,
         }
         user.password = newPassword;
         await user?.save();
+        // await redis.set(req.user?._id, JSON.stringify(user));
         await redis_1.redis.set(req.user?._id, JSON.stringify(user));
         res.status(201).json({
             success: true,

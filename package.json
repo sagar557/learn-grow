@@ -9,8 +9,8 @@
   },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only server.ts",
-    "start": "node build/server.js",
     "build": "tsc",
+    "start": "node build/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "sagar",
@@ -23,7 +23,6 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.6",
     "@types/node-cron": "^3.0.11",
-    "@types/socket.io": "^3.0.2",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.1.0",

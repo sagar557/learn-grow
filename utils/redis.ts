@@ -1,29 +1,34 @@
-// import { Redis } from "ioredis";
-// require( 'dotenv').config();
+// import Redis from "ioredis";
+import dotenv from 'dotenv';
+
+// dotenv.config();
 
 // const redisClient = () => {
-//     if(process.env.REDIS_URL){
+//     if (process.env.REDIS_URL) {
 //         console.log('Redis is connected');
-//         return process.env.REDIS_URL;
+//         return new Redis(process.env.REDIS_URL, {
+//             retryStrategy(times) {
+//                 return Math.min(times * 50, 2000);
+//             },
+//             maxRetriesPerRequest: 50,
+//         });
 //     }
-//     throw new  Error("Redis connection failed");
+//     throw new Error("Redis connection failed");
 // };
-// export const redis = new  Redis(redisClient());
 
-import { Redis } from "ioredis";
-require('dotenv').config();
+// export const redis = redisClient();
 
-const redisClient = () => {
-    if (process.env.REDIS_URL) {
-        console.log('Redis is connected');
-        return new Redis(process.env.REDIS_URL, {
-            retryStrategy(times) {
-                return Math.min(times * 50, 2000);
-            },
-            maxRetriesPerRequest: 50,
-        });
-    }
-    throw new Error("Redis connection failed");
-};
+const Redis = require('ioredis');
 
-export const redis = redisClient();
+const redisClient = new Redis(process.env.REDIS_URL);
+
+redisClient.on('connect', () => {
+  console.log('Redis connected');
+});
+
+redisClient.on('error', (err:any) => {
+  console.error('Redis connection error:', err);
+  throw new Error("Redis connection failed");
+});
+
+module.exports = redisClient;

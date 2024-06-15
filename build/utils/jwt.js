@@ -14,8 +14,9 @@ exports.accessTokenOptions = {
 };
 const sendToken = (user, statusCode, res) => {
     const accessToken = user.SignAccessToken();
+    const id = user._id;
     // Upload session to redis
-    redis_1.redis.set(user._id, JSON.stringify(user));
+    redis_1.redis.set(id, JSON.stringify(user));
     res.cookie("access_token", accessToken, exports.accessTokenOptions);
     res.status(statusCode).json({
         success: true,
