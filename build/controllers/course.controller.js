@@ -9,7 +9,7 @@ const ErrorHandler_1 = __importDefault(require("../utils/ErrorHandler"));
 const cloudinary_1 = __importDefault(require("cloudinary"));
 const course_service_1 = require("../services/course.service");
 const course_model_1 = __importDefault(require("../models/course.model"));
-const redis_1 = require("../utils/redis");
+const redis_1 = __importDefault(require("../utils/redis"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const ejs_1 = __importDefault(require("ejs"));
 const path_1 = __importDefault(require("path"));
@@ -77,7 +77,7 @@ exports.editCourse = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, nex
 exports.getSingleCourse = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, next) => {
     try {
         const courseId = req.params.id;
-        const isCacheExist = await redis_1.redis.get(courseId);
+        const isCacheExist = await redis_1.default.get(courseId);
         if (isCacheExist) {
             const course = JSON.parse(isCacheExist);
             res.status(200).json({
@@ -87,7 +87,7 @@ exports.getSingleCourse = (0, catchAsyncError_1.CatchAsyncError)(async (req, res
         }
         else {
             const course = await course_model_1.default.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
-            await redis_1.redis.set(courseId, JSON.stringify(course), 'EX', 604800); //7 days
+            await redis_1.default.set(courseId, JSON.stringify(course), 'EX', 604800); //7 days
             res.status(200).json({
                 success: true,
                 course,
@@ -306,7 +306,7 @@ exports.deleteCourse = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, n
             return next(new ErrorHandler_1.default("Course not found", 404));
         }
         await course.deleteOne({ id });
-        await redis_1.redis.del(id);
+        await redis_1.default.del(id);
         res.status(200).json({
             success: "true",
             message: "Course deleted successfully",

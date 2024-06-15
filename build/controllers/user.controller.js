@@ -13,7 +13,7 @@ const ejs_1 = __importDefault(require("ejs"));
 const path_1 = __importDefault(require("path"));
 const sendMail_1 = __importDefault(require("../utils/sendMail"));
 const jwt_1 = require("../utils/jwt");
-const redis_1 = require("../utils/redis");
+const redis_1 = __importDefault(require("../utils/redis"));
 const user_service_1 = require("../services/user.service");
 const cloudinary_1 = __importDefault(require("cloudinary"));
 // User registration
@@ -117,7 +117,7 @@ exports.logoutUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, nex
         res.cookie("access_token", "", { maxAge: 1 });
         const userId = req.user?._id || '';
         // redis.del(userId);
-        redis_1.redis.del(userId);
+        redis_1.default.del(userId);
         res.status(200).json({
             success: true,
             message: "Logged out successfully",
@@ -190,7 +190,7 @@ exports.updatePassword = (0, catchAsyncError_1.CatchAsyncError)(async (req, res,
         user.password = newPassword;
         await user?.save();
         // await redis.set(req.user?._id, JSON.stringify(user));
-        await redis_1.redis.set(req.user?._id, JSON.stringify(user));
+        await redis_1.default.set(req.user?._id, JSON.stringify(user));
         res.status(201).json({
             success: true,
             user,
@@ -229,7 +229,7 @@ exports.updateProfilePicture = (0, catchAsyncError_1.CatchAsyncError)(async (req
             }
         }
         await user?.save();
-        await redis_1.redis.set(userId, JSON.stringify(user));
+        await redis_1.default.set(userId, JSON.stringify(user));
         res.status(200).json({
             success: true,
             user,
@@ -267,7 +267,7 @@ exports.deleteUser = (0, catchAsyncError_1.CatchAsyncError)(async (req, res, nex
             return next(new ErrorHandler_1.default("User not found", 404));
         }
         await user.deleteOne({ id });
-        await redis_1.redis.del(id);
+        await redis_1.default.del(id);
         res.status(200).json({
             success: true,
             message: "User deleted successfully",
