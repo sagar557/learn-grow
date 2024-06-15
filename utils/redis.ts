@@ -1,5 +1,5 @@
 // import Redis from "ioredis";
-import dotenv from 'dotenv';
+// import dotenv from 'dotenv';
 
 // dotenv.config();
 
@@ -17,18 +17,23 @@ import dotenv from 'dotenv';
 // };
 
 // export const redis = redisClient();
+import Redis from 'ioredis';
+import dotenv from 'dotenv';
 
-const Redis = require('ioredis');
+dotenv.config();
 
-const redisClient = new Redis(process.env.REDIS_URL);
+const redisClient = (() => {
+    if (process.env.REDIS_URL) {
+        console.log('Redis is connected');
+        return new Redis(process.env.REDIS_URL, {
+            retryStrategy(times) {
+                return Math.min(times * 50, 2000);
+            },
+            maxRetriesPerRequest: 50,
+        });
+    }
+    console.error('Redis connection failed: REDIS_URL is not defined');
+    return new Redis({ host: 'localhost', port: 6379 });
+})();
 
-redisClient.on('connect', () => {
-  console.log('Redis connected');
-});
-
-redisClient.on('error', (err:any) => {
-  console.error('Redis connection error:', err);
-  throw new Error("Redis connection failed");
-});
-
-module.exports = redisClient;
+export default redisClient;

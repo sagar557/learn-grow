@@ -1,6 +1,8 @@
 import { Response } from "express";
 import { IUser } from "../models/user.model";
-import { redis } from "./redis";
+import redis  from "./redis";
+import redisClient from '../utils/redis';
+
 
 interface ITokenOptions {
     expires: Date;

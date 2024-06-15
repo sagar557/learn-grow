@@ -2,7 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import { CatchAsyncError } from "./catchAsyncError";
 import ErrorHandler from "../utils/ErrorHandler";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { redis } from "../utils/redis";
+import  redis  from "../utils/redis";
+import redisClient from '../utils/redis';
+
 
 // Authenticated user middleware
 export const isAuthenticated = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
