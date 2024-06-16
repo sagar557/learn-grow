@@ -12,8 +12,6 @@ const connectDB = async () => {
         await mongoose_1.default.connect(dbUrl, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
-            useCreateIndex: true,
-            useFindAndModify: false,
         });
         console.log(`Database Connected Successfully with ${mongoose_1.default.connection.host}`);
     }
