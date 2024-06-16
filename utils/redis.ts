@@ -1,20 +1,20 @@
-import Redis from 'ioredis';
-import dotenv from 'dotenv';
+// import Redis from 'ioredis';
+// import dotenv from 'dotenv';
 
-dotenv.config();
+// dotenv.config();
 
-const redisClient = (() => {
-    if (process.env.REDIS_URL) {
-        console.log('Redis is connected');
-        return new Redis(process.env.REDIS_URL, {
-            retryStrategy(times) {
-                return Math.min(times * 50, 2000);
-            },
-            maxRetriesPerRequest: 50,
-        });
-    }
-    console.error('Redis connection failed: REDIS_URL is not defined');
-    return new Redis({ host: 'localhost', port: 6379 });
-})();
+// const redisClient = (() => {
+//     if (process.env.REDIS_URL) {
+//         console.log('Redis is connected');
+//         return new Redis(process.env.REDIS_URL, {
+//             retryStrategy(times) {
+//                 return Math.min(times * 50, 2000);
+//             },
+//             maxRetriesPerRequest: 50,
+//         });
+//     }
+//     console.error('Redis connection failed: REDIS_URL is not defined');
+//     return new Redis({ host: 'localhost', port: 6379 });
+// })();
 
-export default redisClient;
+// export default redisClient;

@@ -1,34 +1,65 @@
 import { Response } from "express";
-import  redis  from "../utils/redis";
-import userModel from "../models/user.model";
+import userModel, { IUser } from "../models/user.model";
 
+// Get user by ID
 export const getUserById = async (id: string, res: Response) => {
-    const userJson = await redis.get(id);
-
-    if (userJson) {
-        const user = JSON.parse(userJson);
-        res.status(201).json({
+    try {
+        const user = await userModel.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        res.status(200).json({
             success: true,
             user,
-        })
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
     }
-}
-
-// Get All users
-export const getAllUsersService = async (res: Response) => {
-    const users = await userModel.find().sort({ createdAt: -1 });
-    res.status(201).json({
-        success: true,
-        users,
-    });
 };
 
-// update user Role
+// Get all users
+export const getAllUsersService = async (res: Response) => {
+    try {
+        const users = await userModel.find().sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            users,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
+    }
+};
 
-export const updateUserRoleService = async (res:Response, id:string, role:string)=>{
-    const user = await userModel.findByIdAndUpdate(id, {role},{new: true});
-    res.status(201).json({
-        success: true,
-        user,
-    })
-}
+// Update user role by ID
+export const updateUserRoleService = async (res: Response, id: string, role: string) => {
+    try {
+        const user = await userModel.findByIdAndUpdate(id, { role }, { new: true });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        res.status(200).json({
+            success: true,
+            user,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
+    }
+};

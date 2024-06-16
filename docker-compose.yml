@@ -2,10 +2,14 @@ version: '3.8'
 
 services:
   server:
-    build: .
-    environment:
+    image: railway/node:16
+    env:
+      - PORT=8000
       - DB_URL=${DB_URL}
       - REDIS_URL=${REDIS_URL}
+    secrets:
+      - DB_URL
+      - REDIS_URL
     ports:
       - "8000:8000"
     depends_on:

@@ -1,8 +1,6 @@
 import { Response } from "express";
 import { IUser } from "../models/user.model";
-import redis  from "./redis";
-import redisClient from '../utils/redis';
-
+import jwt from "jsonwebtoken";
 
 interface ITokenOptions {
     expires: Date;
@@ -26,10 +24,6 @@ export const accessTokenOptions: ITokenOptions = {
 
 export const sendToken = (user: IUser, statusCode: number, res: Response) => {
     const accessToken = user.SignAccessToken();
-    const id:any = user._id
-    // Upload session to redis
-    redis.set(id, JSON.stringify(user));
-    
 
     res.cookie("access_token", accessToken, accessTokenOptions);
 

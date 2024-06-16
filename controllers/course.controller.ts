@@ -4,8 +4,6 @@ import ErrorHandler from "../utils/ErrorHandler";
 import cloudinary from 'cloudinary';
 import { createCourse, getAllCoursesService } from "../services/course.service";
 import CourseModel from "../models/course.model";
-import redis from "../utils/redis";
-import redisClient from '../utils/redis';
 import mongoose from "mongoose";
 import ejs from "ejs";
 import path from "path";
@@ -77,27 +75,24 @@ export const getSingleCourse = CatchAsyncError(
     async (req: Request, res: Response, next: NextFunction) => {
         try {
             const courseId = req.params.id;
-            const isCacheExist = await redis.get(courseId);
 
-            if (isCacheExist) {
-                const course = JSON.parse(isCacheExist);
-                res.status(200).json({
-                    success: true,
-                    course,
-                })
-            } else {
-                const course = await CourseModel.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
-                await redis.set(courseId, JSON.stringify(course), 'EX', 604800); //7 days
-                res.status(200).json({
-                    success: true,
-                    course,
-                });
+            const course = await CourseModel.findById(courseId).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links");
+
+            if (!course) {
+                return next(new ErrorHandler('Course not found', 404));
             }
+
+            res.status(200).json({
+                success: true,
+                course,
+            });
+            
         } catch (error: any) {
             return next(new ErrorHandler(error.message, 500));
         }
     }
 );
+
 
 //get all courses -- without purchasing
 export const getAllCourses = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -354,7 +349,7 @@ export const deleteCourse = CatchAsyncError(async (req: Request, res: Response, 
             return next(new ErrorHandler("Course not found", 404));
         }
         await course.deleteOne({ id });
-        await redis.del(id);
+        // await redis.del(id);
 
         res.status(200).json({
             success: "true",

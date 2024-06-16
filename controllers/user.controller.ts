@@ -8,8 +8,6 @@ import ejs from "ejs";
 import path from "path";
 import sendMail from "../utils/sendMail";
 import { accessTokenOptions, sendToken } from "../utils/jwt";
-import redis  from "../utils/redis";
-import redisClient from '../utils/redis';
 import { getAllUsersService, getUserById, updateUserRoleService } from "../services/user.service";
 import cloudinary from "cloudinary";
 import { RedisKey } from "ioredis";
@@ -146,7 +144,7 @@ export const logoutUser = CatchAsyncError(async (req: Request, res: Response, ne
         res.cookie("access_token", "", { maxAge: 1 });
         const userId = req.user?._id || '';
         // redis.del(userId);
-        redis.del(userId as RedisKey);
+        // redis.del(userId as RedisKey);
         res.status(200).json({
             success: true,
             message: "Logged out successfully",
@@ -241,7 +239,7 @@ export const updatePassword = CatchAsyncError(async (req: Request, res: Response
         user.password = newPassword;
         await user?.save();
         // await redis.set(req.user?._id, JSON.stringify(user));
-        await redis.set(req.user?._id as RedisKey, JSON.stringify(user));
+        // await redis.set(req.user?._id as RedisKey, JSON.stringify(user));
 
 
         res.status(201).json({
@@ -286,7 +284,7 @@ export const updateProfilePicture = CatchAsyncError(async (req: Request, res: Re
             }
         }
         await user?.save();
-        await redis.set(userId, JSON.stringify(user));
+        // await redis.set(userId, JSON.stringify(user));
         
         res.status(200).json({
             success: true,
@@ -326,7 +324,7 @@ export const deleteUser = CatchAsyncError(async (req: Request, res: Response, ne
             return next(new ErrorHandler("User not found", 404));
         }
         await user.deleteOne({ id });
-        await redis.del(id);
+        // await redis.del(id);
 
         res.status(200).json({
             success: true,
