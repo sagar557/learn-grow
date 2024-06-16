@@ -3,8 +3,8 @@ services:
     image: railway/node:16
     env:
       - PORT=8000
-      - MONGODB_URI=${DB_URL}  # Use DB_URL here
+      - DB_URL=${DB_URL}
       - REDIS_URL=${REDIS_URL}
     secrets:
-      - DB_URL  # Secret name must match the environment variable name
+      - DB_URL
       - REDIS_URL
